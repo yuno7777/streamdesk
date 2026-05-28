@@ -20,7 +20,26 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [searchVal, setSearchVal] = useState('');
   const notifRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const runSearch = () => {
+    const q = searchVal.trim();
+    router.push(q ? `/tickets?search=${encodeURIComponent(q)}` : '/tickets');
+  };
+
+  // Ctrl/Cmd+K focuses the global search (matches the keyboard hint)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   // Fetch recent tickets and map them into active notifications
   useEffect(() => {
@@ -92,13 +111,21 @@ export default function Header() {
 
       {/* Right Side Controls */}
       <div className="flex items-center gap-6">
-        {/* Fake Search with KBD hint */}
+        {/* Global ticket search with KBD hint */}
         <div className="relative w-64 hidden sm:block">
+          <label htmlFor="global-search-input" className="sr-only">Search tickets</label>
           <input
+            id="global-search-input"
+            ref={searchRef}
             type="text"
-            className="w-full pl-3 pr-16 py-1.5 text-xs bg-[#F8F9FA] border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#2563EB] focus:border-[#2563EB] text-[#0F172A] placeholder-[#64748B] transition-all-150 select-none"
-            placeholder="Search..."
-            readOnly
+            className="w-full pl-3 pr-16 py-1.5 text-xs bg-[#F8F9FA] border border-[#CBD5E1] rounded-md focus:outline-none focus:ring-1 focus:ring-[#2563EB] focus:border-[#2563EB] text-[#0F172A] placeholder-[#64748B] transition-all-150"
+            placeholder="Search tickets..."
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') runSearch();
+              if (e.key === 'Escape') searchRef.current?.blur();
+            }}
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none select-none">
             <kbd className="inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold text-[#64748B] bg-white border border-[#E2E8F0] rounded shadow-sm">

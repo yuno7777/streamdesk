@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    let sql = `SELECT ticket_id, customer_name, subject, status, created_at FROM tickets`;
+    let sql = `SELECT ticket_id, customer_name, customer_email, subject, description, status, created_at, updated_at FROM tickets`;
     const conditions: string[] = [];
     const params: any[] = [];
 
